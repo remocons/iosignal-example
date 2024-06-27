@@ -11,11 +11,11 @@
   <h2>Messages:</h2>
   <ul id="messages"></ul>
 
-  <script src="/iosignal.min.js"></script>
+  <script src="/iosignal"></script>
 
-
-  <script>
-
+  
+  <script type="module">
+    import { IO } from './iosignal.esm.js'
 
     const status = document.getElementById('status');
     const messages = document.getElementById('messages');

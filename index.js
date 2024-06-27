@@ -7,8 +7,8 @@ const httpServer = createServer((req, res) => {
 
 
   console.log('req url:', req.url)
-  if (req.url == '/iosignal.esm.js') {
-    let content = readFileSync('iosignal.esm.js');
+  if (req.url == '/iosignal.min.js') {
+    let content = readFileSync('iosignal.min.js');
     let length = Buffer.byteLength(content);
     res.writeHead(200, {
       'Content-Type': 'text/javascript',
