@@ -39,8 +39,8 @@ httpServer.listen(8080);
 
 const options = {
   httpServer: httpServer,
-  // showMetric: 2,
-  // showMessage: 'message'
+  showMetric: 2,
+  showMessage: 'message'
 }
 const ioss = new Server(options)
 
