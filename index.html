@@ -37,7 +37,10 @@
     let wsURL = url.href
     console.log('ws url', wsURL)
 
-    // fircat io client.
+    
+    // As of June 30, 2024, there is a bug in the Stackblitz webcontainers environment where an additional 2-byte value is added when the binaryType of a WebSocket is set to arrayBuffer, making it impossible to use arrayBuffer for binary communication. To address this issue, a feature has been added to use binaryType as blob. You can set the IO.binaryType (a class property) to "blob" as shown below:
+    IO.binaryType = 'blob'  // This setting is only necessary if Stackblitz or arrayBuffer is not supported.
+
     let io = new IO(wsURL)
 
     io.on('ready', () => {
