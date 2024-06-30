@@ -37,10 +37,9 @@
     let wsURL = url.href
     console.log('ws url', wsURL)
 
-    
-    // As of June 30, 2024, there is a bug in the Stackblitz webcontainers environment where an additional 2-byte value is added when the binaryType of a WebSocket is set to arrayBuffer, making it impossible to use arrayBuffer for binary communication. To address this issue, a feature has been added to use binaryType as blob. You can set the IO.binaryType (a class property) to "blob" as shown below:
-    IO.binaryType = 'blob'  // This setting is only necessary if Stackblitz or arrayBuffer is not supported.
 
+    // As of June 30, 2024, there is a bug in the Stackblitz webcontainers environment where an additional 2-byte value is added when the binaryType of a WebSocket is set to arrayBuffer, making it impossible to use arrayBuffer for binary communication. To address this issue, a feature has been added to use binaryType as blob. You can set the IO.binaryType (a class property) to "blob" as shown below:
+    IO.binaryType = "blob"  // stackblitz webcontainer
     let io = new IO(wsURL)
 
     io.on('ready', () => {
@@ -62,6 +61,7 @@
 
       setInterval(() => {
         io.signal('channel#topic', 'unixtime', parseInt( Date.now() / 1000 ) )
+        
       }, 2000)
 
     })
@@ -70,11 +70,20 @@
       console.log(msg)
     })
 
+    io.listen('channel#8bytes', (...args)=>{
+      console.log('binary', args)
+      let buffer = args[0]
+      appendMessage( `io2->io binary signal data: ${ buffer.toString('hex')}`)
+    })
 
     // second io client.
     let io2 = new IO(wsURL)
     io2.on('ready', () => {
       appendMessage(`io2 ready:${io2.cid}`);
+
+      setInterval(()=>{
+        io2.signal('channel#8bytes', new Uint8Array([1,2,3,4,5,6,7,8]))
+      },2000)
     })
 
     io2.listen('channel#topic', (...args) => {
@@ -82,6 +91,7 @@
     })
 
 
+    
 
   </script>
 </body>
