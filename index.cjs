@@ -8,7 +8,7 @@ const httpServer = createServer((req, res) => {
 
   console.log('req url:', req.url)
   if (req.url == '/iosignal.min.js') {
-    let content = readFileSync('iosignal.min.js');
+    let content = readFileSync('node_modules/iosignal/dist/iosignal.min.js');
     let length = Buffer.byteLength(content);
     res.writeHead(200, {
       'Content-Type': 'text/javascript',
@@ -39,8 +39,8 @@ httpServer.listen(8080);
 
 const options = {
   httpServer: httpServer,
-  showMetric: 2,
-  showMessage: 'message'
+  // showMetric: 2,
+  // showMessage: 'message'
 }
 const ioss = new Server(options)
 
