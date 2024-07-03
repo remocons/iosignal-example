@@ -1,6 +1,6 @@
-const { readFileSync } = require('fs');
-const { createServer } = require('http');
-const { Server, api_reply } = require('iosignal')
+import { readFileSync } from 'fs'
+import { createServer } from 'http'
+import { Server, api_reply } from 'iosignal'
 
 
 const httpServer = createServer((req, res) => {
