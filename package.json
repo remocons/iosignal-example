@@ -11,6 +11,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "iosignal": "^1.7.0"
+    "iosignal": "^1.7.1"
   }
 }

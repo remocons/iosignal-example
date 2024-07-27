@@ -1,53 +1,57 @@
-import { readFileSync } from 'fs'
-import { createServer } from 'http'
-import { Server, api_reply } from 'iosignal'
+import * as fs from "node:fs";
+import * as http from "node:http";
+import * as path from "node:path";
+import { Server as IOSignalServer, api_reply } from 'iosignal'
 
+const PORT = 8000;
 
-const httpServer = createServer((req, res) => {
+const MIME_TYPES = {
+  default: "application/octet-stream",
+  html: "text/html; charset=UTF-8",
+  js: "application/javascript",
+  css: "text/css",
+  png: "image/png",
+  jpg: "image/jpg",
+  gif: "image/gif",
+  ico: "image/x-icon",
+  svg: "image/svg+xml",
+};
 
+const STATIC_PATH = path.join(process.cwd(), "./static");
 
-  console.log('req url:', req.url)
-  if (req.url == '/iosignal.min.js') {
-    let content = readFileSync('node_modules/iosignal/dist/iosignal.min.js');
-    let length = Buffer.byteLength(content);
-    res.writeHead(200, {
-      'Content-Type': 'text/javascript',
-      'Content-Length': length
-    });
-    res.end(content);
-  } else if (req.url == '/') {
-    let content2 = readFileSync('index.html');
-    let length2 = Buffer.byteLength(content2);
-    res.writeHead(200, {
-      'Content-Type': 'text/html',
-      'Content-Length': length2
-    });
-    res.end(content2);
+const toBool = [() => true, () => false];
 
-  } else {
-    res.writeHead(404);
-    res.end('Not found');
-    return;
-  }
+const prepareFile = async (url) => {
+  const paths = [STATIC_PATH, url];
+  if (url.endsWith("/")) paths.push("index.html");
+  const filePath = path.join(...paths);
+  const pathTraversal = !filePath.startsWith(STATIC_PATH);
+  const exists = await fs.promises.access(filePath).then(...toBool);
+  const found = !pathTraversal && exists;
+  const streamPath = found ? filePath : STATIC_PATH + "/404.html";
+  const ext = path.extname(streamPath).substring(1).toLowerCase();
+  const stream = fs.createReadStream(streamPath);
+  return { found, ext, stream };
+};
 
-
-});
-
-
-httpServer.listen(8080);
-
-
-const options = {
-  httpServer: httpServer,
-  // showMetric: 2,
-  // showMessage: 'message'
-}
-const ioss = new Server(options)
-
-// api  response module
-ioss.api('reply', api_reply)
-
-ioss.on('text_message', (msg, socket) => {
-  console.log(msg)
-  socket.send('this is server')
+const httpServer = http.createServer(async (req, res) => {
+  const file = await prepareFile(req.url);
+  const statusCode = file.found ? 200 : 404;
+  const mimeType = MIME_TYPES[file.ext] || MIME_TYPES.default;
+  res.writeHead(statusCode, { "Content-Type": mimeType });
+  file.stream.pipe(res);
+  console.log(`${req.method} ${req.url} ${statusCode}`);
 })
+  .listen(PORT);
+
+console.log(`Server running at http://127.0.0.1:${PORT}/`);
+
+
+const ioss = new IOSignalServer(
+  {
+    httpServer: httpServer,
+    // showMetric: 2,
+    // showMessage: 'message'
+  }
+)
+
