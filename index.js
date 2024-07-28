@@ -1,7 +1,9 @@
 import * as fs from "node:fs";
 import * as http from "node:http";
 import * as path from "node:path";
-import { Server as IOSignalServer, api_reply } from 'iosignal'
+import * as iosignal from 'iosignal'
+import { cp } from 'node:fs/promises';
+
 
 const PORT = 8000;
 
@@ -11,19 +13,37 @@ const MIME_TYPES = {
   js: "application/javascript",
   css: "text/css",
   png: "image/png",
-  jpg: "image/jpg",
+  jpg: "image/jpeg",
   gif: "image/gif",
   ico: "image/x-icon",
   svg: "image/svg+xml",
 };
 
 const STATIC_PATH = path.join(process.cwd(), "./static");
+const LIBRARY_PATH = path.join(process.cwd(), "./node_modules/iosignal/dist");
+
+console.log(LIBRARY_PATH)
+
+try {
+  await cp(LIBRARY_PATH, STATIC_PATH + "/lib", {
+    mode: fs.constants.COPYFILE_FICLONE
+    , recursive: true
+  })
+  console.log('successfully cp lib')
+} catch (error) {
+  console.error('lib cp error:', error)
+}
+
 
 const toBool = [() => true, () => false];
 
 const prepareFile = async (url) => {
+  console.log('url', url)
   const paths = [STATIC_PATH, url];
-  if (url.endsWith("/")) paths.push("index.html");
+
+  if (url.endsWith("/")) {
+    paths.push("index.html");
+  }
   const filePath = path.join(...paths);
   const pathTraversal = !filePath.startsWith(STATIC_PATH);
   const exists = await fs.promises.access(filePath).then(...toBool);
@@ -47,7 +67,7 @@ const httpServer = http.createServer(async (req, res) => {
 console.log(`Server running at http://127.0.0.1:${PORT}/`);
 
 
-const ioss = new IOSignalServer(
+const ioss = new iosignal.Server(
   {
     httpServer: httpServer,
     // showMetric: 2,

@@ -11,7 +11,7 @@
   <h2>Messages:</h2>
   <ul id="messages"></ul>
 
-  <script src="iosignal.min.js"></script>
+  <script src="lib/iosignal.min.js"></script>
 
 
   <script>
@@ -59,7 +59,7 @@
     })
 
     io.listen('channel#8bytes', (...args)=>{
-      console.log('binary', args)
+      // console.log('binary', args)
       let buffer = args[0]
       appendMessage( `io2->io binary signal data: ${ buffer.toString('hex')}`)
     })
