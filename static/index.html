@@ -11,12 +11,10 @@
   <h2>Messages:</h2>
   <ul id="messages"></ul>
 
-  <script src="lib/iosignal.min.js"></script>
+  <script src="lib/iosignal-iife.js"></script>
 
 
   <script>
-
-
     const status = document.getElementById('status');
     const messages = document.getElementById('messages');
 
@@ -33,10 +31,9 @@
     }else{
       url.protocol = 'ws'
     }
-    // let io = new IO('wss://io.iosignal.net/ws')
+
     let wsURL = url.href
     console.log('ws url', wsURL)
-
 
     // As of June 30, 2024, there is a bug in the Stackblitz webcontainers environment where an additional 2-byte value is added when the binaryType of a WebSocket is set to arrayBuffer, making it impossible to use arrayBuffer for binary communication. To address this issue, a feature has been added to use binaryType as blob. You can set the IO.binaryType (a class property) to "blob" as shown below:
     IO.binaryType = "blob"  // stackblitz webcontainer
@@ -49,7 +46,6 @@
 
       setInterval(() => {
         io.signal('channel#topic', 'unixtime', parseInt( Date.now() / 1000 ) )
-        
       }, 2000)
 
     })
@@ -80,8 +76,6 @@
       appendMessage(`io -> io2 signal received: ${args}`)
     })
 
-
-    
 
   </script>
 </body>

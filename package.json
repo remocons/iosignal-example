@@ -1,6 +1,6 @@
 {
   "name": "iosignal-example",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -11,6 +11,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "iosignal": "^1.7.1"
+    "iosignal": "1.8.0"
   }
 }
