@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as http from "node:http";
 import * as path from "node:path";
-import * as iosignal from 'iosignal'
+import { Server } from 'iosignal'
 import { cp } from 'node:fs/promises';
 
 
@@ -66,8 +66,7 @@ const httpServer = http.createServer(async (req, res) => {
 
 console.log(`Server running at http://127.0.0.1:${PORT}/`);
 
-
-const ioss = new iosignal.Server(
+new Server(
   {
     httpServer: httpServer,
     // showMetric: 2,
