@@ -1,81 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>IOSignal client</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <title>IOSignal client</title>
-</head>
+  <body>
+    <h2>Status: <span id="status">Disconnected</span></h2>
+    <h2>Messages:</h2>
+    <ul id="messages"></ul>
 
-<body>
-  <h2>Status: <span id="status">Disconnected</span></h2>
-  <h2>Messages:</h2>
-  <ul id="messages"></ul>
+    <script src="./lib/io.min.js"></script>
 
-  <script src="./lib/iosignal-iife.js"></script>
+    <script>
+      const status = document.getElementById("status");
+      const messages = document.getElementById("messages");
 
+      const appendMessage = (content) => {
+        const item = document.createElement("li");
+        item.textContent = content;
+        if (messages.childElementCount > 10) messages.innerHTML = "";
+        messages.appendChild(item);
+      };
 
-  <script>
-    const status = document.getElementById('status');
-    const messages = document.getElementById('messages');
+      let url = new URL(document.URL);
+      if (url.protocol == "https:") {
+        url.protocol = "wss";
+      } else {
+        url.protocol = "ws";
+      }
 
-    const appendMessage = content => {
-      const item = document.createElement('li');
-      item.textContent = content;
-      if( messages.childElementCount > 10 ) messages.innerHTML = ""
-      messages.appendChild(item);
-    };
+      let wsURL = url.href;
+      console.log("ws url", wsURL);
 
-    let url = new URL(document.URL)
-    if( url.protocol == 'https:'){
-      url.protocol = 'wss'
-    }else{
-      url.protocol = 'ws'
-    }
+      // As of June 30, 2024, there is a bug in the Stackblitz webcontainers environment where an additional 2-byte value is added when the binaryType of a WebSocket is set to arrayBuffer, making it impossible to use arrayBuffer for binary communication. To address this issue, a feature has been added to use binaryType as blob. You can set the IO.binaryType (a class property) to "blob" as shown below:
+      IO.binaryType = "blob"; // stackblitz webcontainer
+      let io = new IO(wsURL);
 
-    let wsURL = url.href
-    console.log('ws url', wsURL)
+      io.on("ready", () => {
+        console.log("ready", io.cid);
+        status.innerText = "ready";
+        appendMessage(`io ready:${io.cid}`);
 
-    // As of June 30, 2024, there is a bug in the Stackblitz webcontainers environment where an additional 2-byte value is added when the binaryType of a WebSocket is set to arrayBuffer, making it impossible to use arrayBuffer for binary communication. To address this issue, a feature has been added to use binaryType as blob. You can set the IO.binaryType (a class property) to "blob" as shown below:
-    IO.binaryType = "blob"  // stackblitz webcontainer
-    let io = new IO(wsURL)
+        setInterval(() => {
+          io.signal("channel#topic", "unixtime", parseInt(Date.now() / 1000));
+        }, 2000);
+      });
 
-    io.on('ready', () => {
-      console.log('ready', io.cid)
-      status.innerText = 'ready'
-      appendMessage(`io ready:${io.cid}`);
+      io.on("text_message", (msg) => {
+        console.log(msg);
+      });
 
-      setInterval(() => {
-        io.signal('channel#topic', 'unixtime', parseInt( Date.now() / 1000 ) )
-      }, 2000)
+      io.listen("channel#8bytes", (...args) => {
+        // console.log('binary', args)
+        let buffer = args[0];
+        appendMessage(`io2->io binary signal data: ${buffer.toString("hex")}`);
+      });
 
-    })
+      // second io client.
+      let io2 = new IO(wsURL);
+      io2.on("ready", () => {
+        appendMessage(`io2 ready:${io2.cid}`);
 
-    io.on('text_message', (msg) => {
-      console.log(msg)
-    })
+        setInterval(() => {
+          let randomBytes = new Uint8Array(8);
+          self.crypto.getRandomValues(randomBytes);
+          io2.signal("channel#8bytes", randomBytes);
+        }, 2000);
+      });
 
-    io.listen('channel#8bytes', (...args)=>{
-      // console.log('binary', args)
-      let buffer = args[0]
-      appendMessage( `io2->io binary signal data: ${ buffer.toString('hex')}`)
-    })
-
-    // second io client.
-    let io2 = new IO(wsURL)
-    io2.on('ready', () => {
-      appendMessage(`io2 ready:${io2.cid}`);
-
-      setInterval(()=>{
-        let randomBytes = new Uint8Array(8)
-        self.crypto.getRandomValues(randomBytes);
-        io2.signal('channel#8bytes', randomBytes )
-      },2000)
-    })
-
-    io2.listen('channel#topic', (...args) => {
-      appendMessage(`io -> io2 signal received: ${args}`)
-    })
-
-
-  </script>
-</body>
+      io2.listen("channel#topic", (...args) => {
+        appendMessage(`io -> io2 signal received: ${args}`);
+      });
+    </script>
+  </body>
+</html>

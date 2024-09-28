@@ -1,9 +1,8 @@
 import * as fs from "node:fs";
 import * as http from "node:http";
 import * as path from "node:path";
-import * as iosignal from 'iosignal'
-import { cp } from 'node:fs/promises';
-
+import { Server } from "iosignal";
+import { cp } from "node:fs/promises";
 
 const PORT = 8000;
 
@@ -22,23 +21,22 @@ const MIME_TYPES = {
 const STATIC_PATH = path.join(process.cwd(), "./static");
 const LIBRARY_PATH = path.join(process.cwd(), "./node_modules/iosignal/dist");
 
-console.log(LIBRARY_PATH)
+console.log(LIBRARY_PATH);
 
 try {
   await cp(LIBRARY_PATH, STATIC_PATH + "/lib", {
-    mode: fs.constants.COPYFILE_FICLONE
-    , recursive: true
-  })
-  console.log('successfully cp lib')
+    mode: fs.constants.COPYFILE_FICLONE,
+    recursive: true,
+  });
+  console.log("successfully cp lib");
 } catch (error) {
-  console.error('lib cp error:', error)
+  console.error("lib cp error:", error);
 }
-
 
 const toBool = [() => true, () => false];
 
 const prepareFile = async (url) => {
-  console.log('url', url)
+  console.log("url", url);
   const paths = [STATIC_PATH, url];
 
   if (url.endsWith("/")) {
@@ -54,24 +52,21 @@ const prepareFile = async (url) => {
   return { found, ext, stream };
 };
 
-const httpServer = http.createServer(async (req, res) => {
-  const file = await prepareFile(req.url);
-  const statusCode = file.found ? 200 : 404;
-  const mimeType = MIME_TYPES[file.ext] || MIME_TYPES.default;
-  res.writeHead(statusCode, { "Content-Type": mimeType });
-  file.stream.pipe(res);
-  console.log(`${req.method} ${req.url} ${statusCode}`);
-})
+const httpServer = http
+  .createServer(async (req, res) => {
+    const file = await prepareFile(req.url);
+    const statusCode = file.found ? 200 : 404;
+    const mimeType = MIME_TYPES[file.ext] || MIME_TYPES.default;
+    res.writeHead(statusCode, { "Content-Type": mimeType });
+    file.stream.pipe(res);
+    console.log(`${req.method} ${req.url} ${statusCode}`);
+  })
   .listen(PORT);
 
 console.log(`Server running at http://127.0.0.1:${PORT}/`);
 
-
-const ioss = new iosignal.Server(
-  {
-    httpServer: httpServer,
-    // showMetric: 2,
-    // showMessage: 'message'
-  }
-)
-
+const ioss = new Server({
+  httpServer: httpServer,
+  // showMetric: 2,
+  // showMessage: 'message'
+});
